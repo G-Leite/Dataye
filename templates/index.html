@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta de Vazamentos</title>
+</head>
+<body>
+    <h1>Verifique se seu e-mail foi vazado</h1>
+
+    <form id="form-consulta">
+        <input type="email" id="email" placeholder="seu@email.com" required>
+        <button type="submit">Consultar</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <script>
+        document.getElementById("form-consulta").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const resultadoDiv = document.getElementById("resultado");
+            resultadoDiv.textContent = "Consultando...";
+
+            const resp = await fetch("/consultar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            });
+
+            const dados = await resp.json();
+
+            if (!resp.ok) {
+                resultadoDiv.textContent = "Erro: " + dados.erro;
+                return;
+            }
+
+            if (dados.foi_vazado) {
+                resultadoDiv.innerHTML = `<p>Encontrado em ${dados.vazamentos.length} vazamento(s):</p>
+                    <ul>${dados.vazamentos.map(v => `<li>${v.nome}</li>`).join("")}</ul>`;
+            } else {
+                resultadoDiv.textContent = "Nenhum vazamento encontrado.";
+            }
+        });
+    </script>
+</body>
+</html>
